@@ -121,6 +121,26 @@
         margin: 0 !important;
         min-width: 120px !important;
       }
+
+      /* Ajout d'un curseur de glissement */
+      .shortcut-item {
+        cursor: grab;
+      }
+
+      .shortcut-item:active {
+        cursor: grabbing;
+      }
+
+      /* Indicateur visuel quand l'élément est déplacé */
+      .shortcut-item.dragging {
+        opacity: 0.5;
+      }
+
+      /* Effet visuel sur la cible du drag-and-drop */
+      .shortcut-item.drag-over {
+        border: 2px dashed #6c63ff; /* Bordure temporaire */
+        transition: border 0.2s ease;
+      }
     </style>
   </head>
   <body class="text-white font-sans custom-scrollbar">
@@ -317,8 +337,67 @@
         return `<i class="fas fa-link text-gray-500"></i>`;
       }
 
+      //   function displayShortcuts() {
+      //     shortcutsContainer.innerHTML = "";
+      //     const layoutClass = isGridView
+      //       ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+      //       : "flex flex-col gap-2";
+      //     shortcutsContainer.className = layoutClass;
+
+      //     shortcuts.forEach((shortcut, index) => {
+      //       const div = document.createElement("div");
+      //       if (isGridView) {
+      //         const icon = getIconForUrl(shortcut.url);
+      //         div.className =
+      //           "glassmorphism p-6 rounded-2xl card-hover group relative";
+      //         div.innerHTML = `
+      //           <div class="flex justify-between items-start mb-3">
+      //               <h3 class="text-xl font-bold gradient-text truncate" style="max-width: 200px;">
+      //                   ${shortcut.name}
+      //               </h3>
+      //               <button class="delete-button text-gray-400 hover:text-red-400 transition-colors duration-300 delete-btn" data-index="${index}">
+      //                   <i class="fas fa-times"></i>
+      //               </button>
+      //           </div>
+      //           <a href="${shortcut.url}" target="_blank" class="text-pink-300 hover:text-pink-400 transition duration-300 block break-words hover:underline flex items-center gap-2">
+      //               ${icon} <span class="truncate">${shortcut.url}</span>
+      //           </a>
+      //         `;
+      //       } else {
+      //         div.className =
+      //           "glassmorphism rounded-xl card-hover group relative list-view-item";
+      //         div.innerHTML = `
+      //           <button class="delete-button text-gray-400 hover:text-red-400 transition-colors duration-300 delete-btn" data-index="${index}">
+      //               <i class="fas fa-times"></i>
+      //           </button>
+      //           <h3 class="text-sm font-bold gradient-text truncate" style="max-width: 200px;">
+      //               ${shortcut.name}
+      //           </h3>
+      //           <a href="${shortcut.url}" target="_blank" class="text-pink-300 hover:text-pink-400 transition duration-300 truncate hover:underline flex-1">
+      //               ${shortcut.url}
+      //           </a>
+      //         `;
+      //       }
+      //       shortcutsContainer.appendChild(div);
+      //     });
+
+      //     const deleteButtons = document.querySelectorAll(".delete-button");
+      //     deleteButtons.forEach((button) => {
+      //       button.addEventListener("click", () => {
+      //         const index = button.getAttribute("data-index");
+      //         shortcuts.splice(index, 1);
+      //         localStorage.setItem("shortcuts", JSON.stringify(shortcuts));
+      //         displayShortcuts();
+      //       });
+      //     });
+
+      //     // Update view icon
+      //     viewIcon.className = isGridView ? "fas fa-th-list" : "fas fa-th";
+      //   }
+
       function displayShortcuts() {
         shortcutsContainer.innerHTML = "";
+
         const layoutClass = isGridView
           ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3"
           : "flex flex-col gap-2";
@@ -326,39 +405,50 @@
 
         shortcuts.forEach((shortcut, index) => {
           const div = document.createElement("div");
+          div.setAttribute("draggable", true); // Ajout du glisser-déposer
+          div.setAttribute("data-index", index); // Identifiant pour le glisser-déposer
+
           if (isGridView) {
             const icon = getIconForUrl(shortcut.url);
             div.className =
-              "glassmorphism p-6 rounded-2xl card-hover group relative";
+              "glassmorphism p-6 rounded-2xl card-hover group relative shortcut-item";
             div.innerHTML = `
-              <div class="flex justify-between items-start mb-3">
-                  <h3 class="text-xl font-bold gradient-text truncate" style="max-width: 200px;">
-                      ${shortcut.name}
-                  </h3>
-                  <button class="delete-button text-gray-400 hover:text-red-400 transition-colors duration-300 delete-btn" data-index="${index}">
-                      <i class="fas fa-times"></i>
-                  </button>
-              </div>
-              <a href="${shortcut.url}" target="_blank" class="text-pink-300 hover:text-pink-400 transition duration-300 block break-words hover:underline flex items-center gap-2">
-                  ${icon} <span class="truncate">${shortcut.url}</span>
-              </a>
-            `;
+        <div class="flex justify-between items-start mb-3">
+            <h3 class="text-xl font-bold gradient-text truncate" style="max-width: 200px;">
+                ${shortcut.name}
+            </h3>
+            <button class="delete-button text-gray-400 hover:text-red-400 transition-colors duration-300 delete-btn" data-index="${index}">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <a href="${shortcut.url}" target="_blank" class="text-pink-300 hover:text-pink-400 transition duration-300 block break-words hover:underline flex items-center gap-2">
+            ${icon} <span class="truncate">${shortcut.url}</span>
+        </a>
+      `;
           } else {
             div.className =
-              "glassmorphism rounded-xl card-hover group relative list-view-item";
+              "glassmorphism rounded-xl card-hover group relative list-view-item shortcut-item";
             div.innerHTML = `
-              <button class="delete-button text-gray-400 hover:text-red-400 transition-colors duration-300 delete-btn" data-index="${index}">
-                  <i class="fas fa-times"></i>
-              </button>
-              <h3 class="text-sm font-bold gradient-text truncate" style="max-width: 200px;">
-                  ${shortcut.name}
-              </h3>
-              <a href="${shortcut.url}" target="_blank" class="text-pink-300 hover:text-pink-400 transition duration-300 truncate hover:underline flex-1">
-                  ${shortcut.url}
-              </a>
-            `;
+        <button class="delete-button text-gray-400 hover:text-red-400 transition-colors duration-300 delete-btn" data-index="${index}">
+            <i class="fas fa-times"></i>
+        </button>
+        <h3 class="text-sm font-bold gradient-text truncate" style="max-width: 200px;">
+            ${shortcut.name}
+        </h3>
+        <a href="${shortcut.url}" target="_blank" class="text-pink-300 hover:text-pink-400 transition duration-300 truncate hover:underline flex-1">
+            ${shortcut.url}
+        </a>
+      `;
           }
+
           shortcutsContainer.appendChild(div);
+
+          // Ajout des événements pour le drag-and-drop
+          div.addEventListener("dragstart", handleDragStart);
+          div.addEventListener("dragover", handleDragOver);
+          div.addEventListener("drop", handleDrop);
+          div.addEventListener("dragenter", handleDragEnter);
+          div.addEventListener("dragleave", handleDragLeave);
         });
 
         const deleteButtons = document.querySelectorAll(".delete-button");
@@ -371,8 +461,55 @@
           });
         });
 
-        // Update view icon
+        // Mise à jour de l'icône de vue
         viewIcon.className = isGridView ? "fas fa-th-list" : "fas fa-th";
+      }
+
+      // Gestion du début du drag
+      function handleDragStart(event) {
+        event.dataTransfer.setData("text/plain", event.target.dataset.index);
+        event.target.classList.add("dragging"); // Ajouter une classe pour l'indicateur visuel
+      }
+
+      // Gestion du survol (dragover)
+      function handleDragOver(event) {
+        event.preventDefault(); // Nécessaire pour autoriser le drop
+      }
+
+      // Gestion du début de l'entrée d'un élément dans la zone de drop
+      function handleDragEnter(event) {
+        const target = event.target.closest(".shortcut-item");
+        if (target && !target.classList.contains("dragging")) {
+          target.classList.add("drag-over"); // Ajouter un effet visuel sur la cible
+        }
+      }
+
+      // Gestion de la sortie d'un élément de la zone de drop
+      function handleDragLeave(event) {
+        const target = event.target.closest(".shortcut-item");
+        if (target) {
+          target.classList.remove("drag-over"); // Retirer l'effet visuel
+        }
+      }
+
+      // Gestion du drop
+      function handleDrop(event) {
+        event.preventDefault();
+        const target = event.target.closest(".shortcut-item");
+        if (target) {
+          target.classList.remove("drag-over"); // Retirer l'effet visuel
+        }
+
+        const draggedIndex = event.dataTransfer.getData("text/plain");
+        const droppedIndex = target.dataset.index;
+
+        // Réorganiser les éléments dans le tableau
+        const draggedItem = shortcuts.splice(draggedIndex, 1)[0];
+        shortcuts.splice(droppedIndex, 0, draggedItem);
+
+        // Sauvegarder dans localStorage et redéfinir l'affichage
+        localStorage.setItem("shortcuts", JSON.stringify(shortcuts));
+        displayShortcuts();
       }
 
       function openPopup() {
