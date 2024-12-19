@@ -380,6 +380,9 @@
         urlInput.value = "";
         nameInput.value = "";
         addPopup.classList.remove("hidden");
+        setTimeout(() => {
+          nameInput.focus();
+        }, 0);
       }
 
       function closePopup() {
